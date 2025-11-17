@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Conda
+.conda/
+
+# Data files (will be large)
+data/
+datasets/
+*.txt
+*.json
+*.pkl
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# Logs
+logs/
+*.log
+wandb/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Checkpoints
+checkpoints/
+outputs/
+runs/
+
+# System
+.DS_Store
+*.bak
+*~
+
+# CUDA installer
+cuda_*.run
+
+# Keep these
+!test_mamba.py
+!test_mamba_130m.py
+!verify_5090.py
