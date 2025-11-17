@@ -53,3 +53,5 @@ cuda_*.run
 !test_mamba.py
 !test_mamba_130m.py
 !verify_5090.py
+=1.1.0
+torch

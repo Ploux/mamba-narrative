@@ -43,6 +43,6 @@ python test_mamba_130m.py
 
 - [Mamba: Linear-Time Sequence Modeling](https://arxiv.org/abs/2312.00752)
 - [Mamba GitHub](https://github.com/state-spaces/mamba)
-- [Memory-Augmented Transformers] (https://arxiv.org/html/2508.10824v1)
-- [Advancing Transformer Architecture in Long-Context Large Language Models] (https://arxiv.org/html/2311.12351v2)
+- [Memory-Augmented Transformers](https://arxiv.org/html/2508.10824v1)
+- [Advancing Transformer Architecture in Long-Context Large Language Models](https://arxiv.org/html/2311.12351v2)
 - See `references.md` for more papers on LLMs and narrative generation.
