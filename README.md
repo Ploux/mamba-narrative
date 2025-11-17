@@ -8,11 +8,24 @@ Develop specialized small language models for long-form fiction generation using
 
 ## Current Status
 
-**Phase 1: Baseline Establishment** (In Progress)
-- Environment setup complete
-- Mamba-130M configuration verified (d_model=896, n_layer=16)
-- RTX 5090 with CUDA 12.8 operational
-- Next: Data preparation (Project Gutenberg corpus)
+**Phase 1: Baseline Establishment**
+
+Subtask 1: Environment Setup - Complete
+- CUDA 12.8 toolkit installed
+- PyTorch nightly with CUDA 12.8 support
+- mamba-ssm and causal-conv1d compiled from source
+- Mamba-130M configuration verified (d_model=896, n_layer=16, 126.9M parameters)
+- RTX 5090 operational
+
+Subtask 2: Data Preparation - In Progress
+- Project Gutenberg corpus downloaded (sedthh/gutenberg_english, 48k books)
+- Preprocessing and tokenization pipeline running
+- Creating train/validation/test splits with 1024-token sequences
+
+Subtask 3: Training Configuration - Next
+- Configure training parameters for narrative generation
+- Implement baseline training loop
+- Profile memory usage and generation quality
 
 ## Installation
 
