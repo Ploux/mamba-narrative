@@ -8,7 +8,7 @@ Develop specialized small language models for long-form fiction generation using
 
 ## Current Status
 
-**Phase 1: Baseline Establishment**
+**Phase 1: Baseline Establishment - Complete**
 
 Subtask 1: Environment Setup - Complete
 - CUDA 12.8 toolkit installed
@@ -17,15 +17,34 @@ Subtask 1: Environment Setup - Complete
 - Mamba-130M configuration verified (d_model=896, n_layer=16, 126.9M parameters)
 - RTX 5090 operational
 
-Subtask 2: Data Preparation - In Progress
-- Project Gutenberg corpus downloaded (sedthh/gutenberg_english, 48k books)
-- Preprocessing and tokenization pipeline running
-- Creating train/validation/test splits with 1024-token sequences
+Subtask 2: Data Preparation - Complete
+- Project Gutenberg corpus downloaded (sedthh/gutenberg_english, 5,000 books)
+- Preprocessing and tokenization complete
+- Dataset: 502,357 training sequences, 25,311 validation, 26,887 test
+- Total training tokens: 514,413,568 (~514M tokens)
+- Sequence length: 1024 tokens
 
-Subtask 3: Training Configuration - Next
-- Configure training parameters for narrative generation
-- Implement baseline training loop
-- Profile memory usage and generation quality
+Subtask 3: Baseline Training - Complete
+- 3 epochs completed in 9.5 hours on RTX 5090
+- Batch size: 8, Learning rate: 6e-4
+- Final validation perplexity: 19.50
+
+### Baseline Training Results
+
+| Epoch | Train Loss | Val Loss | Val Perplexity | Time (min) |
+|-------|------------|----------|----------------|------------|
+| 1     | 3.0991     | 3.0261   | 20.62          | 188.9      |
+| 2     | 2.9272     | 2.9894   | 19.87          | 190.9      |
+| 3     | 2.9008     | 2.9704   | 19.50          | 191.7      |
+
+See [generations_20251119.md](generations_20251119.md) for example outputs from the trained model.
+
+**Phase 2: Multi-Track Architecture - Next**
+
+Implement narrative-specific architectural modifications as described in [research_plan.md](research_plan.md):
+- Triple-track SSM blocks (character/plot/scene timescales)
+- Narrative-aware routing mechanism
+- Cross-track attention for information exchange
 
 ## Installation
 
@@ -45,6 +64,9 @@ python test_mamba_130m.py
 - `research_plan.md` - Full research roadmap
 - `test_mamba.py` - Basic Mamba block verification
 - `test_mamba_130m.py` - 130M model verification
+- `train_baseline.py` - Training script for baseline model
+- `generate_text.py` - Text generation inference script
+- `generations_20251119.md` - Example generations from trained baseline
 
 ## Hardware
 
