@@ -6,7 +6,7 @@ Two parallel SSM tracks with different temporal dynamics
 import math
 import torch
 import torch.nn as nn
-from mamba_ssm.modules.mamba_simple import Mamba, Block
+from mamba_ssm.modules.mamba_simple import Mamba
 from mamba_ssm.models.mixer_seq_simple import MixerModel
 from mamba_ssm.models.config_mamba import MambaConfig
 
@@ -126,11 +126,11 @@ class DualTrackBlock(nn.Module):
         """
         if residual is None:
             residual = hidden_states
-            hidden_states = self.norm(hidden_states)
         else:
-            # Fused add norm
-            hidden_states, residual = self.norm(hidden_states, residual)
+            hidden_states = hidden_states + residual
+            residual = hidden_states
         
+        hidden_states = self.norm(hidden_states)
         hidden_states = self.mixer(hidden_states, inference_params=inference_params)
         
         return hidden_states, residual
