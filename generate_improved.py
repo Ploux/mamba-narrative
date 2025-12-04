@@ -50,7 +50,7 @@ def generate_improved(model, tokenizer, prompt, max_length=200, temperature=0.7,
 # Load baseline
 config = MambaConfig(d_model=896, n_layer=16, vocab_size=50257)
 model = MambaLMHeadModel(config)
-checkpoint = torch.load('checkpoints/mamba_baseline/best_model.pt')
+checkpoint = torch.load('checkpoints/mamba_baseline/best_model_epoch7.pt')
 model.load_state_dict(checkpoint['model_state_dict'])
 model = model.cuda()
 

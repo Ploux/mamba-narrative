@@ -8,7 +8,7 @@ from mamba_ssm.models.config_mamba import MambaConfig
 from transformers import GPT2Tokenizer
 from continuation_eval import evaluate_model
 
-def load_baseline(checkpoint_path='checkpoints/mamba_baseline/best_model.pt'):
+def load_baseline(checkpoint_path='checkpoints/mamba_baseline/best_model_epoch7.pt'):
     config = MambaConfig(
         d_model=896,
         n_layer=16,
