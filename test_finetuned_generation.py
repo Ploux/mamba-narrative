@@ -22,7 +22,7 @@ prompts = [
 ]
 
 # Open file for writing
-with open('finetuned_2800m_generations.txt', 'w') as f:
+with open('finetuned_2800m_generations_2.txt', 'w') as f:
     f.write("="*60 + "\n")
     f.write("Fine-tuned 2800M Generations\n")
     f.write("="*60 + "\n\n")

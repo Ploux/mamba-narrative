@@ -39,11 +39,11 @@ def main():
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    # Hyperparameters - ADJUSTED FOR STABILITY
+    # Hyperparameters
     batch_size = 1
     accumulation_steps = 2
-    learning_rate = 5e-5  # REDUCED from 1e-4
-    num_epochs = 8
+    learning_rate = 2e-5
+    num_epochs = 15
     max_length = 1024
     
     save_dir = 'checkpoints/finetuned_2800m'
@@ -109,7 +109,11 @@ def main():
     
     # Optimizer
     import bitsandbytes as bnb
-    optimizer = bnb.optim.AdamW8bit(model.parameters(), lr=learning_rate)
+    optimizer = bnb.optim.AdamW8bit(
+        model.parameters(), 
+        lr=learning_rate,
+        weight_decay=0.1  # Increased regularization
+    )
     
     print(f"\n{'='*60}")
     print(f"Fine-tuning Mamba-2.8B for up to {num_epochs} epochs")
@@ -216,7 +220,7 @@ def main():
             json.dump(training_history, f, indent=2)
         
         # Early stopping
-        if epoch > 2 and val_loss > best_val_loss + 0.1:
+        if epoch > 5 and val_loss > best_val_loss + 0.15:
             print(f"\nEarly stopping - validation loss increasing")
             break
     

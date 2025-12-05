@@ -65,7 +65,7 @@ def create_narrative_dataset():
                 })
         
         # Limit total examples
-        if len(examples) >= 10000:
+        if len(examples) >= 50000:
             break
     
     print(f"\nCreated {len(examples)} training examples")
