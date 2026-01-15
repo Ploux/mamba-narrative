@@ -5,9 +5,9 @@ Test generation from fine-tuned baseline
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-print("Loading fine-tuned 2800M baseline...")
+print("Loading fine-tuned 790M baseline...")
 model = AutoModelForCausalLM.from_pretrained(
-    "checkpoints/finetuned_2800m/best_model",
+    "checkpoints/finetuned_790m/best_model",
     trust_remote_code=True
 )
 model = model.cuda()
@@ -22,9 +22,9 @@ prompts = [
 ]
 
 # Open file for writing
-with open('finetuned_2800m_generations_2.txt', 'w') as f:
+with open('finetuned_790m_generations_3a.txt', 'w') as f:
     f.write("="*60 + "\n")
-    f.write("Fine-tuned 2800M Generations\n")
+    f.write("Fine-tuned 790M Generations\n")
     f.write("="*60 + "\n\n")
     
     for prompt in prompts:
@@ -38,7 +38,7 @@ with open('finetuned_2800m_generations_2.txt', 'w') as f:
         with torch.no_grad():
             outputs = model.generate(
                 **inputs,
-                max_length=200,
+                max_length=500,
                 do_sample=True,
                 temperature=0.7,
                 top_p=0.9,

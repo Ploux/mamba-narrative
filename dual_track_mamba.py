@@ -178,6 +178,16 @@ class DualTrackMambaLMHeadModel(nn.Module):
         # Initialize
         self.apply(self._init_weights)
         
+    # In DualTrackMambaLMHeadModel class, add after __init__:
+
+    def gradient_checkpointing_enable(self):
+        """Enable gradient checkpointing"""
+        self._gradient_checkpointing = True
+        
+    def gradient_checkpointing_disable(self):
+        """Disable gradient checkpointing"""
+        self._gradient_checkpointing = False
+        
     def _init_weights(self, module):
         if isinstance(module, nn.Linear):
             nn.init.normal_(module.weight, mean=0.0, std=0.02)
@@ -197,7 +207,22 @@ class DualTrackMambaLMHeadModel(nn.Module):
         
         residual = None
         for layer in self.backbone['layers']:
-            hidden_states, residual = layer(hidden_states, residual, inference_params)
+            if hasattr(self, '_gradient_checkpointing') and self._gradient_checkpointing and self.training:
+                # Use gradient checkpointing
+                def create_custom_forward(module):
+                    def custom_forward(*inputs):
+                        return module(*inputs)
+                    return custom_forward
+                
+                hidden_states, residual = torch.utils.checkpoint.checkpoint(
+                    create_custom_forward(layer),
+                    hidden_states,
+                    residual,
+                    inference_params,
+                    use_reentrant=False
+                )
+            else:
+                hidden_states, residual = layer(hidden_states, residual, inference_params)
         
         # Final norm
         if residual is None:
@@ -224,3 +249,89 @@ def create_dual_track_model(config: MambaConfig, fast_dt_scale=2.0, slow_dt_scal
     print(f"Dual-track model parameters: {total_params:,} ({total_params/1e6:.1f}M)")
     
     return model
+
+def create_dual_track_from_pretrained(pretrained_model, fast_dt_scale=2.0, slow_dt_scale=0.5):
+    """
+    Convert a pretrained single-track Mamba to dual-track architecture
+    Both tracks initialized from pretrained weights
+    
+    Args:
+        pretrained_model: Pretrained MambaLMHeadModel (from HuggingFace)
+        fast_dt_scale: Temporal scale for fast track
+        slow_dt_scale: Temporal scale for slow track
+    
+    Returns:
+        DualTrackMambaLMHeadModel with pretrained initialization
+    """
+    print("Converting pretrained model to dual-track...")
+    
+    # Get config from pretrained model and convert to our format
+    hf_config = pretrained_model.config
+    
+    # Create compatible config
+    config = MambaConfig(
+        d_model=hf_config.hidden_size,
+        n_layer=hf_config.num_hidden_layers,
+        vocab_size=hf_config.vocab_size,
+        ssm_cfg=getattr(hf_config, 'ssm_cfg', {})
+    )
+    
+    print(f"  Config: d_model={config.d_model}, n_layer={config.n_layer}, vocab={config.vocab_size}")
+    
+    # Create dual-track model
+    dual_model = DualTrackMambaLMHeadModel(
+        config=config,
+        fast_dt_scale=fast_dt_scale,
+        slow_dt_scale=slow_dt_scale
+    )
+    
+    # Copy embeddings
+    print("  Copying embeddings...")
+    dual_model.backbone['embedding'].weight.data = pretrained_model.backbone.embeddings.weight.data.clone()
+    
+    # Copy LM head (tied with embeddings)
+    dual_model.lm_head.weight = dual_model.backbone['embedding'].weight
+    
+    # Copy final norm
+    print("  Copying final norm...")
+    if hasattr(pretrained_model.backbone, 'norm_f'):
+        dual_model.backbone['norm_f'].weight.data = pretrained_model.backbone.norm_f.weight.data.clone()
+        if hasattr(pretrained_model.backbone.norm_f, 'bias') and pretrained_model.backbone.norm_f.bias is not None:
+            dual_model.backbone['norm_f'].bias.data = pretrained_model.backbone.norm_f.bias.data.clone()
+    
+    # Copy each layer
+    print(f"  Copying {config.n_layer} layers...")
+    for i in range(config.n_layer):
+        pretrained_layer = pretrained_model.backbone.layers[i]
+        dual_layer = dual_model.backbone['layers'][i]
+        
+        # Copy norm
+        dual_layer.norm.weight.data = pretrained_layer.norm.weight.data.clone()
+        if hasattr(pretrained_layer.norm, 'bias') and pretrained_layer.norm.bias is not None:
+            dual_layer.norm.bias.data = pretrained_layer.norm.bias.data.clone()
+        
+        # Initialize BOTH tracks from pretrained mixer
+        # Copy all mixer parameters to both tracks
+        for name, param in pretrained_layer.mixer.named_parameters():
+            # Fast track
+            fast_target = dual_layer.mixer.fast_mamba
+            slow_target = dual_layer.mixer.slow_mamba
+            
+            for part in name.split('.'):
+                if hasattr(fast_target, part):
+                    if part == name.split('.')[-1]:  # Final parameter
+                        getattr(fast_target, part).data = param.data.clone()
+                        getattr(slow_target, part).data = param.data.clone()
+                    else:
+                        fast_target = getattr(fast_target, part)
+                        slow_target = getattr(slow_target, part)
+        
+        # Initialize out_proj
+        nn.init.eye_(dual_layer.mixer.out_proj.weight)
+        nn.init.zeros_(dual_layer.mixer.out_proj.bias)
+    
+    print("✓ Conversion complete")
+    print(f"  Both tracks initialized from pretrained weights")
+    print(f"  Track combination weights initialized to equal (0.5, 0.5)")
+    
+    return dual_model
